@@ -1,15 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Truck, ShieldCheck, Headphones, Settings, Star, Zap, Clock, CheckCircle, MessageCircle, ChevronLeft, ChevronRight, Recycle, MapPin } from 'lucide-react';
-import { PageRoute } from '../types';
+import { useNavigate } from 'react-router-dom';
 import { CATEGORIES, MOCK_PRODUCTS } from '../constants';
 import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { IMAGES } from '../assets/images';
-
-interface HomePageProps {
-  onNavigate: (route: PageRoute) => void;
-}
 
 const BRANDS = ['Volkswagen', 'Chevrolet', 'Fiat', 'Ford', 'Toyota', 'Honda', 'Hyundai', 'Renault'];
 
@@ -77,7 +72,8 @@ const HERO_SLIDES = [
   }
 ];
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const promoProducts = MOCK_PRODUCTS.filter(p => p.originalPrice);
   const featuredProducts = MOCK_PRODUCTS.filter(p => !p.originalPrice).slice(0, 4);
@@ -138,10 +134,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Button size="lg" className="h-14 px-8 text-lg" onClick={() => onNavigate({ name: 'category', slug: slide.linkSlug })}>
+                  <Button size="lg" className="h-14 px-8 text-lg" onClick={() => navigate(`/category/${slide.linkSlug}`)}>
                     {slide.ctaPrimary}
                   </Button>
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-grayLight/30 text-white hover:bg-white hover:text-blackCarbon" onClick={() => onNavigate({ name: 'institutional', slug: 'contato' })}>
+                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-grayLight/30 text-white hover:bg-white hover:text-blackCarbon" onClick={() => navigate('/institutional/contato')}>
                     {slide.ctaSecondary}
                   </Button>
                 </div>
@@ -251,7 +247,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => onNavigate({ name: 'category', slug: cat.id })}
+              onClick={() => navigate(`/category/${cat.id}`)}
               className="group relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-[6px] border border-grayMedium bg-grayDark p-8 transition-all hover:border-primary hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-blackCarbon/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
@@ -279,7 +275,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                Peças originais com pequenos detalhes estéticos com até <strong className="text-white">40% de desconto</strong>. Ideal para funilaria e pintura.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-               <Button variant="secondary" size="lg" className="bg-blackCarbon text-white border-transparent hover:bg-black hover:text-white" onClick={() => onNavigate({ name: 'category', slug: 'lataria' })}>
+               <Button variant="secondary" size="lg" className="bg-blackCarbon text-white border-transparent hover:bg-black hover:text-white" onClick={() => navigate('/category/lataria')}>
                   Ver Itens da Promoção
                </Button>
             </div>
@@ -296,7 +292,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
             <button 
               className="hidden sm:flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
-              onClick={() => onNavigate({ name: 'category', slug: 'all' })}
+              onClick={() => navigate('/category/all')}
             >
               Ver todas as ofertas <ArrowRight size={16} />
             </button>
@@ -306,7 +302,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                onClick={() => onNavigate({ name: 'product', id: product.id })}
+                onClick={() => navigate(`/product/${product.id}`)}
               />
             ))}
           </div>
@@ -323,7 +319,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
              </div>
              <button 
                 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
-                onClick={() => onNavigate({ name: 'category', slug: 'all' })}
+                onClick={() => navigate('/category/all')}
              >
                Estoque Completo <ArrowRight size={16} />
              </button>
@@ -333,7 +329,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <ProductCard 
                 key={product.id} 
                 product={product} 
-                onClick={() => onNavigate({ name: 'product', id: product.id })}
+                onClick={() => navigate(`/product/${product.id}`)}
               />
             ))}
           </div>

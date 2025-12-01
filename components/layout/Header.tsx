@@ -1,26 +1,24 @@
 
 import React, { useState } from 'react';
-import { ShoppingCart, Menu, Search, User, Settings, X } from 'lucide-react';
+import { ShoppingCart, Menu, Search, User, X, LogOut, Shield } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/Button';
-import { PageRoute } from '../../types';
 import { CATEGORIES } from '../../constants';
-import { cn } from '../../utils/formatting';
 import { IMAGES } from '../../assets/images';
+import { useNavigate, Link } from 'react-router-dom';
 
-interface HeaderProps {
-  onNavigate: (route: PageRoute) => void;
-}
-
-export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
+export const Header: React.FC = () => {
   const { totalItems } = useCart();
+  const { user, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      onNavigate({ name: 'search', query: searchQuery });
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
     }
   };
@@ -43,18 +41,13 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           </button>
 
           {/* Logo */}
-          <div 
-            className="flex items-center gap-3 cursor-pointer group" 
-            onClick={() => onNavigate({ name: 'home' })}
-          >
-            <div className="bg-white rounded-md p-1">
-                <img 
-                  src={IMAGES.logo}
-                  alt="Autodemolidora Coronel Barros" 
-                  className="h-10 w-auto object-contain"
-                />
-            </div>
-          </div>
+          <Link to="/" className="flex items-center gap-3 cursor-pointer group">
+            <img 
+              src={IMAGES.logo}
+              alt="Autodemolidora Coronel Barros" 
+              className="h-16 w-auto object-contain max-w-sm"
+            />
+          </Link>
 
           {/* Desktop Search */}
           <form onSubmit={handleSearch} className="hidden max-w-lg flex-1 lg:flex">
@@ -72,21 +65,53 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="hidden sm:flex gap-2 text-grayLight hover:text-white"
-              onClick={() => onNavigate({ name: 'account' })}
-            >
-              <User size={20} />
-              <span className="hidden lg:inline font-subheading text-lg tracking-wide mt-0.5">Minha Conta</span>
-            </Button>
+            {user ? (
+               <div className="hidden sm:flex items-center gap-3">
+                  {isAdmin && (
+                     <Button 
+                        variant="ghost"
+                        size="sm"
+                        className="text-warning hover:text-white gap-2"
+                        onClick={() => navigate('/admin')}
+                     >
+                        <Shield size={18} /> Admin
+                     </Button>
+                  )}
+                  <Button 
+                     variant="ghost" 
+                     size="sm" 
+                     className="gap-2 text-grayLight hover:text-white"
+                     onClick={() => navigate('/minha-conta')}
+                  >
+                     <User size={20} />
+                     <span className="hidden lg:inline font-subheading text-lg tracking-wide mt-0.5">Conta</span>
+                  </Button>
+                  <Button 
+                     variant="ghost"
+                     size="sm"
+                     className="text-grayLight hover:text-red-500"
+                     onClick={() => signOut()}
+                  >
+                     <LogOut size={20} />
+                  </Button>
+               </div>
+            ) : (
+               <Button 
+                 variant="ghost" 
+                 size="sm" 
+                 className="hidden sm:flex gap-2 text-grayLight hover:text-white"
+                 onClick={() => navigate('/login')}
+               >
+                 <User size={20} />
+                 <span className="hidden lg:inline font-subheading text-lg tracking-wide mt-0.5">Entrar</span>
+               </Button>
+            )}
 
             <Button 
               variant="primary" 
               size="sm" 
               className="relative rounded-[4px] h-11 w-11 p-0 flex items-center justify-center"
-              onClick={() => onNavigate({ name: 'cart' })}
+              onClick={() => navigate('/cart')}
             >
               <ShoppingCart size={20} />
               {totalItems > 0 && (
@@ -119,18 +144,18 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           <ul className="flex items-center justify-center gap-8 py-3 text-sm font-bold text-grayLight tracking-wider uppercase font-subheading text-lg">
             {CATEGORIES.map((cat) => (
               <li key={cat.id}>
-                <button 
+                <Link 
+                  to={`/category/${cat.id}`}
                   className="hover:text-primary transition-colors"
-                  onClick={() => onNavigate({ name: 'category', slug: cat.id })}
                 >
                   {cat.name}
-                </button>
+                </Link>
               </li>
             ))}
             <li className="text-primary hover:text-white cursor-pointer transition-colors">
-              <button onClick={() => onNavigate({ name: 'category', slug: 'all' })}>
+              <Link to="/category/all">
                 Ofertas do Dia
-              </button>
+              </Link>
             </li>
           </ul>
         </div>
@@ -147,12 +172,12 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
             </div>
             <div className="p-4 flex-1 overflow-y-auto">
               <ul className="space-y-4 font-subheading text-xl text-grayLight tracking-wide">
-                <li className="hover:text-primary cursor-pointer" onClick={() => {onNavigate({name: 'home'}); setIsMobileMenuOpen(false)}}>Início</li>
+                <li className="hover:text-primary cursor-pointer" onClick={() => {navigate('/'); setIsMobileMenuOpen(false)}}>Início</li>
                 {CATEGORIES.map((cat) => (
                   <li key={cat.id}>
                     <button 
                       className="block w-full text-left py-1 hover:text-primary transition-colors uppercase"
-                      onClick={() => { onNavigate({ name: 'category', slug: cat.id }); setIsMobileMenuOpen(false); }}
+                      onClick={() => { navigate(`/category/${cat.id}`); setIsMobileMenuOpen(false); }}
                     >
                       {cat.name}
                     </button>
@@ -160,9 +185,18 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                 ))}
               </ul>
               <div className="mt-8 border-t border-grayMedium pt-4">
-                 <button className="flex items-center gap-3 text-grayLight w-full py-2 hover:text-white transition-colors" onClick={() => setIsMobileMenuOpen(false)}>
-                    <User size={20} /> <span className="font-subheading text-lg">Minha Conta</span>
-                 </button>
+                 {user ? (
+                    <>
+                      <div className="text-grayLight text-sm mb-2">Olá, {user.email}</div>
+                      <button className="flex items-center gap-3 text-grayLight w-full py-2 hover:text-white transition-colors" onClick={() => { signOut(); setIsMobileMenuOpen(false); }}>
+                          <LogOut size={20} /> <span className="font-subheading text-lg">Sair</span>
+                      </button>
+                    </>
+                 ) : (
+                    <button className="flex items-center gap-3 text-grayLight w-full py-2 hover:text-white transition-colors" onClick={() => { navigate('/login'); setIsMobileMenuOpen(false); }}>
+                        <User size={20} /> <span className="font-subheading text-lg">Entrar</span>
+                    </button>
+                 )}
               </div>
             </div>
           </div>

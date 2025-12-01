@@ -1,10 +1,10 @@
 
 // This file acts as a centralized folder for all project images.
-// In a real deployment, these could be local files in a public/assets folder.
+// Images are loaded from the assets folder or Unsplash for mocks
 
 export const IMAGES = {
   // Branding
-  logo: "https://i.imgur.com/4jZc3lB.png", // Represents: autodemolidora-logo.svg
+  logo: "/assets/autodemolidora-logo.svg", // Autodemolidora Coronel Barros Logo
 
   // Hero Banners (Home)
   hero: {

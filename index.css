@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@source "./**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  /* Colors - camelCase to match existing class names */
+  --color-primary: #C12322;
+  --color-primaryDark: #A31C1B;
+  --color-blackCarbon: #1A1A1C;
+  --color-grayDark: #2C2F33;
+  --color-grayMedium: #3B3E43;
+  --color-grayLight: #B5B5B5;
+  --color-success: #4CAF50;
+  --color-warning: #F0C243;
+  
+  /* Fonts */
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Anton', sans-serif;
+  --font-subheading: 'Bebas Neue', sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-blackCarbon);
+  color: #F3F4F6;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  letter-spacing: 0.05em;
+}

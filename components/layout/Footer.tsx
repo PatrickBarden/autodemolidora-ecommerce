@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Phone, Mail, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
-import { PageRoute } from '../../types';
 import { IMAGES } from '../../assets/images';
+import { Link } from 'react-router-dom';
 
-export const Footer: React.FC<{ onNavigate: (r: PageRoute) => void }> = ({ onNavigate }) => {
+export const Footer: React.FC = () => {
   return (
     <footer className="bg-blackCarbon text-grayLight border-t border-grayMedium">
       <div className="container mx-auto px-4 py-12">
@@ -13,13 +13,11 @@ export const Footer: React.FC<{ onNavigate: (r: PageRoute) => void }> = ({ onNav
           {/* Company Info */}
           <div>
             <div className="mb-6">
-              <div className="bg-white rounded-md p-1 inline-block mb-3">
-                <img 
-                  src={IMAGES.logo}
-                  alt="Autodemolidora Coronel Barros"
-                  className="h-8 w-auto object-contain"
-                />
-              </div>
+              <img 
+                src={IMAGES.logo}
+                alt="Autodemolidora Coronel Barros"
+                className="h-20 w-auto object-contain mb-3"
+              />
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary block">
                 Peças com Procedência
               </span>
@@ -39,10 +37,10 @@ export const Footer: React.FC<{ onNavigate: (r: PageRoute) => void }> = ({ onNav
           <div>
             <h3 className="mb-6 text-lg font-heading text-white uppercase tracking-wide">Institucional</h3>
             <ul className="space-y-3 font-subheading text-lg tracking-wide text-grayLight/80">
-              <li><button onClick={() => onNavigate({ name: 'institutional', slug: 'sobre' })} className="hover:text-primary transition-colors">Sobre Nós</button></li>
-              <li><button onClick={() => onNavigate({ name: 'institutional', slug: 'trocas' })} className="hover:text-primary transition-colors">Política de Trocas</button></li>
-              <li><button onClick={() => onNavigate({ name: 'institutional', slug: 'privacidade' })} className="hover:text-primary transition-colors">Privacidade</button></li>
-              <li><button onClick={() => onNavigate({ name: 'institutional', slug: 'contato' })} className="hover:text-primary transition-colors">Fale Conosco</button></li>
+              <li><Link to="/institutional/sobre" className="hover:text-primary transition-colors">Sobre Nós</Link></li>
+              <li><Link to="/institutional/trocas" className="hover:text-primary transition-colors">Política de Trocas</Link></li>
+              <li><Link to="/institutional/privacidade" className="hover:text-primary transition-colors">Privacidade</Link></li>
+              <li><Link to="/institutional/contato" className="hover:text-primary transition-colors">Fale Conosco</Link></li>
             </ul>
           </div>
 
