@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_PRODUCTS, CATEGORIES, CATEGORY_DETAILS } from '../constants';
+import { CATEGORIES, CATEGORY_DETAILS } from '../constants';
+import { useProductsByCategory } from '../hooks/useProducts';
 import { IMAGES } from '../assets/images';
 import { ProductCard } from '../components/ProductCard';
 import { Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -9,10 +10,7 @@ export const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const categoryId = slug || 'all';
-
-  const filteredProducts = categoryId === 'all' 
-     ? MOCK_PRODUCTS 
-     : MOCK_PRODUCTS.filter(p => p.category === categoryId);
+  const { products: filteredProducts, loading } = useProductsByCategory(categoryId);
   
   const catDetails = CATEGORY_DETAILS[categoryId] || {
      title: CATEGORIES.find(c => c.id === categoryId)?.name || "Todos os Produtos",
@@ -112,7 +110,12 @@ export const CategoryPage: React.FC = () => {
                     </select>
                  </div>
 
-                 {filteredProducts.length > 0 ? (
+                 {loading ? (
+                    <div className="text-center py-20">
+                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                       <p className="text-grayLight mt-4">Carregando produtos...</p>
+                    </div>
+                 ) : filteredProducts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                        {filteredProducts.map(p => (
                           <ProductCard key={p.id} product={p} onClick={() => navigate(`/product/${p.id}`)} />
@@ -120,8 +123,8 @@ export const CategoryPage: React.FC = () => {
                     </div>
                  ) : (
                     <div className="text-center py-20 bg-grayDark/30 rounded border border-dashed border-grayMedium">
-                       <p className="text-grayLight text-lg mb-2">Nenhum produto encontrado nesta categoria.</p>
-                       <p className="text-sm text-grayLight/50">Tente buscar em outras categorias ou entre em contato pelo WhatsApp.</p>
+                       <p className="text-grayLight text-lg mb-2">Nenhum produto cadastrado nesta categoria.</p>
+                       <p className="text-sm text-grayLight/50">Em breve teremos novidades! Entre em contato pelo WhatsApp.</p>
                     </div>
                  )}
               </div>

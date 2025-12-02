@@ -1,32 +1,59 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Truck, CheckCircle, Minus, Plus, ArrowLeft } from 'lucide-react';
-import { Product, PageRoute } from '../types';
+import { useProduct } from '../hooks/useProducts';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/formatting';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 
-interface ProductDetailProps {
-  product: Product;
-  onNavigate: (route: PageRoute) => void;
-}
-
-export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onNavigate }) => {
+export const ProductDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { product, loading, error } = useProduct(id || '');
   const { addToCart } = useCart();
   const [qty, setQty] = useState(1);
   const [cep, setCep] = useState('');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  // Pega todas as imagens do produto (images array ou fallback para image)
+  const productImages = product?.images?.length ? product.images : (product?.image ? [product.image] : []);
 
   const handleAddToCart = () => {
-    addToCart(product, qty);
+    if (product) {
+      addToCart(product, qty);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-blackCarbon min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-grayLight mt-4">Carregando produto...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-blackCarbon min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-xl text-grayLight mb-4">Produto não encontrado</p>
+          <Button onClick={() => navigate('/')}>Voltar ao início</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 bg-blackCarbon min-h-screen">
       <button 
-        onClick={() => onNavigate({ name: 'home' })}
+        onClick={() => navigate(-1)}
         className="mb-8 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
       >
-        <ArrowLeft size={16} /> Voltar ao pátio
+        <ArrowLeft size={16} /> Voltar
       </button>
 
       <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
@@ -34,19 +61,27 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onNavigat
         <div className="lg:col-span-7 space-y-4">
           <div className="aspect-[4/3] overflow-hidden rounded-[6px] border border-grayMedium bg-grayDark relative">
             <img 
-              src={product.image} 
+              src={productImages[selectedImageIndex] || product.image} 
               alt={product.name} 
               className="h-full w-full object-cover object-center"
             />
             {!product.isNew && <div className="absolute top-4 left-4"><Badge variant="warning" className="text-lg px-3 py-1">PEÇA USADA ORIGINAL</Badge></div>}
           </div>
-          <div className="grid grid-cols-5 gap-4">
-             {[1,2,3,4].map((i) => (
-                <div key={i} className="aspect-square rounded-[4px] border border-grayMedium bg-grayDark cursor-pointer hover:border-primary transition-colors overflow-hidden">
-                   <img src={product.image} alt="" className="h-full w-full object-cover opacity-70 hover:opacity-100 transition-opacity" />
-                </div>
-             ))}
-          </div>
+          {/* Thumbnails - mostra apenas se houver imagens */}
+          {productImages.length > 1 && (
+            <div className="grid grid-cols-5 gap-2 sm:gap-4">
+               {productImages.map((img, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => setSelectedImageIndex(i)}
+                    className={`aspect-square rounded-[4px] border-2 bg-grayDark cursor-pointer transition-all overflow-hidden
+                      ${selectedImageIndex === i ? 'border-primary' : 'border-grayMedium hover:border-grayLight'}`}
+                  >
+                     <img src={img} alt={`${product.name} - ${i + 1}`} className="h-full w-full object-cover" />
+                  </button>
+               ))}
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -79,8 +114,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onNavigat
                 <span className="font-bold uppercase tracking-wide">Disponível em estoque ({product.stock} un.)</span>
              </div>
 
-             <div className="flex items-center gap-4">
-                <div className="flex items-center rounded-[4px] border border-grayMedium bg-blackCarbon">
+             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex items-center rounded-[4px] border border-grayMedium bg-blackCarbon shrink-0">
                    <button 
                       className="p-3 hover:bg-grayMedium text-grayLight hover:text-white disabled:opacity-50"
                       onClick={() => setQty(Math.max(1, qty - 1))}
@@ -96,8 +131,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, onNavigat
                       <Plus size={16} />
                    </button>
                 </div>
-                <Button size="lg" className="flex-1 gap-2 h-12 text-base" onClick={handleAddToCart}>
-                   <ShoppingCart size={20} /> Adicionar ao Carrinho
+                <Button size="lg" className="w-full sm:flex-1 gap-2 h-12 text-sm sm:text-base whitespace-nowrap" onClick={handleAddToCart}>
+                   <ShoppingCart size={18} /> Adicionar ao Carrinho
                 </Button>
              </div>
           </div>

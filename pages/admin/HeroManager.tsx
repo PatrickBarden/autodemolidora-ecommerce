@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import { Button } from '../../components/ui/Button';
+import { ImageUpload } from '../../components/ui/ImageUpload';
 import { 
   Plus, 
   Pencil, 
@@ -11,7 +12,6 @@ import {
   Link as LinkIcon,
   Eye,
   EyeOff,
-  GripVertical,
   ChevronUp,
   ChevronDown
 } from 'lucide-react';
@@ -146,30 +146,18 @@ export const HeroManager: React.FC = () => {
       }
 
       setShowModal(false);
-      alert(editingSlide ? 'Slide atualizado!' : 'Slide criado!');
       fetchSlides();
+      // Não usar alert, apenas fechar o modal
     } catch (error: any) {
-      // Fallback para localStorage se Supabase falhar
-      const newSlide: HeroSlide = {
-        id: editingSlide?.id || Date.now().toString(),
-        ...formData,
-      };
-      
-      if (editingSlide) {
-        saveToLocal(slides.map(s => s.id === editingSlide.id ? newSlide : s));
-      } else {
-        saveToLocal([...slides, newSlide]);
-      }
-      
-      setShowModal(false);
-      alert(editingSlide ? 'Slide atualizado (local)!' : 'Slide criado (local)!');
+      console.error('Erro ao salvar slide:', error);
+      alert('Erro ao salvar slide: ' + (error.message || 'Tente novamente.'));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este slide?')) return;
+  const handleDelete = async (id: string, slideTitle: string) => {
+    if (!window.confirm(`Deseja excluir o slide "${slideTitle || 'Sem título'}"?\n\nEsta ação não pode ser desfeita.`)) return;
 
     try {
       const { error } = await supabase
@@ -357,7 +345,7 @@ export const HeroManager: React.FC = () => {
                         <Pencil size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(slide.id)}
+                        onClick={() => handleDelete(slide.id, slide.title_highlight)}
                         className="p-2 text-red-500 hover:bg-red-500/10 rounded"
                         title="Excluir"
                       >
@@ -387,22 +375,15 @@ export const HeroManager: React.FC = () => {
               <div>
                 <label className={labelClass}>
                   <Image size={16} className="inline mr-2" />
-                  URL da Imagem de Fundo
+                  Imagem de Fundo
                 </label>
-                <input
-                  type="url"
+                <ImageUpload
                   value={formData.background_image}
-                  onChange={(e) => setFormData({ ...formData, background_image: e.target.value })}
-                  placeholder="https://exemplo.com/imagem.jpg"
-                  className={inputClass}
+                  onChange={(url) => setFormData({ ...formData, background_image: url })}
+                  bucket="images"
+                  folder="hero"
+                  previewClassName="h-40 w-full"
                 />
-                {formData.background_image && (
-                  <img 
-                    src={formData.background_image} 
-                    alt="Preview" 
-                    className="mt-2 h-32 w-full object-cover rounded"
-                  />
-                )}
               </div>
 
               {/* Tag */}

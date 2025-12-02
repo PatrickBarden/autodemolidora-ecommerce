@@ -50,18 +50,24 @@ export const AdminDashboard: React.FC = () => {
         .from('profiles')
         .select('id');
 
-      // Fetch promotions
-      const { data: promotions } = await supabase
-        .from('promotions')
-        .select('id')
-        .eq('is_active', true);
+      // Fetch promotions (tabela pode não existir ainda)
+      let promotionsCount = 0;
+      try {
+        const { data: promotions, error } = await supabase
+          .from('promotions')
+          .select('id')
+          .eq('is_active', true);
+        if (!error) promotionsCount = promotions?.length || 0;
+      } catch {
+        // Tabela não existe ainda
+      }
 
       const productList = products || [];
       
       setStats({
         totalProducts: productList.length,
         totalUsers: users?.length || 0,
-        activePromotions: promotions?.length || 0,
+        activePromotions: promotionsCount,
         lowStockProducts: productList.filter(p => p.stock < 3 && p.stock > 0).length,
         totalValue: productList.reduce((acc, p) => acc + (Number(p.price) * p.stock), 0),
         recentProducts: productList.slice(0, 5),

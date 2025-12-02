@@ -46,11 +46,17 @@ export const AdminPromotions: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // Tabela ainda não existe - ignorar silenciosamente
+        if (error.code === 'PGRST205') {
+          setPromotions([]);
+          return;
+        }
+        throw error;
+      }
       setPromotions(data || []);
     } catch (error) {
-      console.error('Error fetching promotions:', error);
-      // Table might not exist yet
+      // Silenciar erro se tabela não existir
     } finally {
       setLoading(false);
     }

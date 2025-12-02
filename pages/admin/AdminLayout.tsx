@@ -9,7 +9,8 @@ import {
   LogOut,
   ChevronRight,
   ExternalLink,
-  Image
+  Image,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -19,6 +20,7 @@ const navItems = [
   { to: '/admin/products', icon: Package, label: 'Produtos' },
   { to: '/admin/users', icon: Users, label: 'Usuários' },
   { to: '/admin/promotions', icon: Tag, label: 'Promoções' },
+  { to: '/admin/reports', icon: BarChart3, label: 'Relatórios' },
   { to: '/admin/settings', icon: Settings, label: 'Configurações' },
 ];
 

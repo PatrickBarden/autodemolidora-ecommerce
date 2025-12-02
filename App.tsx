@@ -20,6 +20,7 @@ import { AdminUsers } from './pages/admin/Users';
 import { AdminPromotions } from './pages/admin/Promotions';
 import { AdminSettings } from './pages/admin/Settings';
 import { HeroManager } from './pages/admin/HeroManager';
+import { AdminReports } from './pages/admin/Reports';
 import { UserLayout } from './pages/user/UserLayout';
 import { UserDashboard } from './pages/user/Dashboard';
 import { UserOrders } from './pages/user/Orders';
@@ -27,6 +28,8 @@ import { UserFavorites } from './pages/user/Favorites';
 import { UserAddresses } from './pages/user/Addresses';
 import { UserReviews } from './pages/user/Reviews';
 import { UserSettings } from './pages/user/Settings';
+import { ContactPage } from './pages/Contact';
+import { ScrollToTop } from './components/ScrollToTop';
 
 // Layout padrão com Header e Footer
 const MainLayout: React.FC = () => {
@@ -62,6 +65,7 @@ const ProtectedRoute: React.FC<{ role?: 'admin' | 'user', children: React.ReactN
 const App: React.FC = () => {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <Routes>
@@ -79,6 +83,7 @@ const App: React.FC = () => {
               <Route path="/checkout" element={<CheckoutPage />} />
               
               {/* Static Pages */}
+              <Route path="/contato" element={<ContactPage />} />
               <Route path="/institutional/:slug" element={<div className="p-8 text-white">Página em construção</div>} />
             </Route>
 
@@ -111,6 +116,7 @@ const App: React.FC = () => {
               <Route path="products/:id" element={<ProductForm />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="promotions" element={<AdminPromotions />} />
+              <Route path="reports" element={<AdminReports />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 

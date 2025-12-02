@@ -6,15 +6,15 @@ export const AdminSettings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     storeName: 'Autodemolidora Coronel Barros',
-    phone: '(11) 99999-9999',
-    whatsapp: '5511999999999',
-    email: 'contato@autodemolidora.com.br',
-    address: 'Rua das Peças, 123 - Centro',
-    city: 'São Paulo - SP',
-    cep: '01234-567',
-    openingHours: 'Seg-Sex: 8h às 18h | Sáb: 8h às 13h',
-    instagram: '@autodemolidora',
-    facebook: '/autodemolidora',
+    phone: '(55) 98406-9184',
+    whatsapp: '55984069184',
+    email: 'demolidoracb@hotmail.com',
+    address: 'Coronel Barros',
+    city: 'Coronel Barros - RS',
+    cep: '',
+    openingHours: 'Seg-Sex: 8h às 18h | Sáb: 8h às 12h',
+    instagram: 'https://www.instagram.com/coronelbarrosautodemolidora/',
+    facebook: 'https://www.facebook.com/autodemolidora.coronelbarros/',
     aboutText: 'Há mais de 20 anos no mercado, a Autodemolidora Coronel Barros é referência em peças usadas e seminovas para veículos.',
   });
 

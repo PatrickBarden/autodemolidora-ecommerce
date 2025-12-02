@@ -2,7 +2,7 @@
 import { Product } from './types';
 import { IMAGES } from './assets/images';
 
-export const STORE_PHONE = "5511999999999"; // Example number
+export const STORE_PHONE = "55984069184"; // WhatsApp Autodemolidora Coronel Barros
 
 export const CATEGORIES = [
   { id: 'motor', name: 'Motores', icon: 'Engine' },

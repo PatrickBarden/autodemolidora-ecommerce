@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../utils/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { ArrowLeft, Upload } from 'lucide-react';
+import { MultiImageUpload } from '../../components/ui/MultiImageUpload';
+import { ArrowLeft } from 'lucide-react';
 import { CATEGORIES } from '../../constants';
 
 export const ProductForm: React.FC = () => {
@@ -19,6 +20,7 @@ export const ProductForm: React.FC = () => {
     stock: '1',
     description: '',
     image_url: '',
+    images: [] as string[],
     is_new: false
   });
 
@@ -37,6 +39,14 @@ export const ProductForm: React.FC = () => {
         .single();
 
       if (error) throw error;
+      // Parse images - pode vir como array ou string JSON
+      let images: string[] = [];
+      if (data.images) {
+        images = Array.isArray(data.images) ? data.images : JSON.parse(data.images);
+      } else if (data.image_url) {
+        images = [data.image_url];
+      }
+
       setFormData({
         name: data.name,
         code: data.code || '',
@@ -46,6 +56,7 @@ export const ProductForm: React.FC = () => {
         stock: data.stock,
         description: data.description || '',
         image_url: data.image_url || '',
+        images: images,
         is_new: data.is_new
       });
     } catch (error) {
@@ -58,14 +69,37 @@ export const ProductForm: React.FC = () => {
     setLoading(true);
 
     try {
-      const productData = {
-        ...formData,
+      // Validar campos obrigatórios
+      if (!formData.name.trim()) {
+        throw new Error('Nome do produto é obrigatório');
+      }
+      if (!formData.price || parseFloat(formData.price) <= 0) {
+        throw new Error('Preço deve ser maior que zero');
+      }
+
+      // Prepara dados do produto
+      // A primeira imagem é usada como image_url principal para compatibilidade
+      const mainImage = formData.images[0] || formData.image_url.trim() || null;
+      
+      const productData: Record<string, any> = {
+        name: formData.name.trim(),
+        code: formData.code.trim() || null,
+        brand: formData.brand.trim() || null,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        specs: {} // Placeholder
+        category: formData.category,
+        stock: parseInt(formData.stock) || 0,
+        description: formData.description.trim() || null,
+        image_url: mainImage,
+        is_new: formData.is_new,
+        specs: {}
       };
 
-      if (isEditing) {
+      // Adiciona images se houver mais de uma imagem
+      if (formData.images.length > 0) {
+        productData.images = formData.images;
+      }
+
+      if (isEditing && id && id !== 'new') {
         const { error } = await supabase
           .from('products')
           .update(productData)
@@ -77,9 +111,10 @@ export const ProductForm: React.FC = () => {
           .insert([productData]);
         if (error) throw error;
       }
-      navigate('/admin');
+      navigate('/admin/products');
     } catch (error: any) {
-      alert('Erro ao salvar: ' + error.message);
+      console.error('Erro ao salvar produto:', error);
+      alert('Erro ao salvar: ' + (error.message || 'Tente novamente'));
     } finally {
       setLoading(false);
     }
@@ -191,22 +226,14 @@ export const ProductForm: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-grayLight uppercase mb-2">URL da Imagem</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={formData.image_url}
-                onChange={e => setFormData({...formData, image_url: e.target.value})}
-                className="w-full bg-blackCarbon border border-grayMedium text-white rounded p-3"
-                placeholder="https://..."
-              />
-              <Button type="button" variant="secondary" title="Upload não implementado">
-                <Upload size={20} />
-              </Button>
-            </div>
-            {formData.image_url && (
-              <img src={formData.image_url} alt="Preview" className="mt-2 h-32 object-cover rounded border border-grayMedium" />
-            )}
+            <label className="block text-xs font-bold text-grayLight uppercase mb-2">Imagens do Produto</label>
+            <MultiImageUpload
+              value={formData.images}
+              onChange={(urls) => setFormData({...formData, images: urls, image_url: urls[0] || ''})}
+              bucket="images"
+              folder="products"
+              maxImages={5}
+            />
           </div>
 
           <div>

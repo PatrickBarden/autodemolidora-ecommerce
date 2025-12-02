@@ -1,10 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, Truck, ShieldCheck, Headphones, Settings, Star, Zap, Clock, CheckCircle, MessageCircle, ChevronLeft, ChevronRight, Recycle, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { CATEGORIES, MOCK_PRODUCTS } from '../constants';
+import { CATEGORIES } from '../constants';
+import { useProducts } from '../hooks/useProducts';
+import { useHeroSlides, HeroSlide } from '../hooks/useHeroSlides';
 import { ProductCard } from '../components/ProductCard';
 import { Button } from '../components/ui/Button';
 import { IMAGES } from '../assets/images';
+import { Product } from '../types';
+
+// Componente de Carrossel de Produtos
+const ProductCarouselSection: React.FC<{
+  products: Product[];
+  onProductClick: (id: string) => void;
+}> = ({ products, onProductClick }) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 300;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  return (
+    <div className="relative group">
+      {/* Scroll Buttons - Desktop */}
+      <button
+        onClick={() => scroll('left')}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-blackCarbon/90 text-white border border-grayMedium shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:border-primary hidden md:flex items-center justify-center -ml-4"
+      >
+        <ChevronLeft size={24} />
+      </button>
+      <button
+        onClick={() => scroll('right')}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-blackCarbon/90 text-white border border-grayMedium shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary hover:border-primary hidden md:flex items-center justify-center -mr-4"
+      >
+        <ChevronRight size={24} />
+      </button>
+
+      {/* Products Container - Horizontal scroll on mobile, grid on desktop */}
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible"
+      >
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="flex-shrink-0 w-[260px] snap-start md:w-auto"
+          >
+            <ProductCard
+              product={product}
+              onClick={() => onProductClick(product.id)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const BRANDS = ['Volkswagen', 'Chevrolet', 'Fiat', 'Ford', 'Toyota', 'Honda', 'Hyundai', 'Renault'];
 
@@ -32,99 +89,117 @@ const TESTIMONIALS = [
   }
 ];
 
-// Dados dos Slides do Hero
-const HERO_SLIDES = [
+// Slides de fallback (usados quando não há slides no banco)
+const FALLBACK_SLIDES: HeroSlide[] = [
   {
-    id: 1,
-    image: IMAGES.hero.engine,
-    tag: { icon: Zap, text: 'Peças com Baixa no Detran' },
-    titlePrefix: 'O',
-    titleHighlight: 'coração',
-    titleSuffix: 'da sua máquina está aqui',
+    id: 'fallback-1',
+    order: 0,
+    is_active: true,
+    background_image: IMAGES.hero.engine,
+    tag_text: 'Peças com Baixa no Detran',
+    title_prefix: 'O',
+    title_highlight: 'coração',
+    title_suffix: 'da sua máquina está aqui',
     description: 'Maior acervo de peças usadas originais e novas da região. Motores, câmbios e lataria com garantia e procedência legal.',
-    ctaPrimary: 'Buscar Peça Agora',
-    ctaSecondary: 'Falar no WhatsApp',
-    linkSlug: 'motor'
+    button_primary_text: 'Buscar Peça Agora',
+    button_primary_link: '/category/motor',
+    button_secondary_text: 'Falar no WhatsApp',
+    button_secondary_link: ''
   },
   {
-    id: 2,
-    image: IMAGES.hero.workshop,
-    tag: { icon: Recycle, text: 'Desmonte Técnico Sustentável' },
-    titlePrefix: 'Peças originais com',
-    titleHighlight: 'procedência',
-    titleSuffix: 'e rastreabilidade',
+    id: 'fallback-2',
+    order: 1,
+    is_active: true,
+    background_image: IMAGES.hero.workshop,
+    tag_text: 'Desmonte Técnico Sustentável',
+    title_prefix: 'Peças originais com',
+    title_highlight: 'procedência',
+    title_suffix: 'e rastreabilidade',
     description: 'Somos credenciados pelo Detran. Compramos veículos de leilão e seguradoras para oferecer peças originais com nota fiscal.',
-    ctaPrimary: 'Ver Estoque',
-    ctaSecondary: 'Conheça a Empresa',
-    linkSlug: 'all'
+    button_primary_text: 'Ver Estoque',
+    button_primary_link: '/category/all',
+    button_secondary_text: 'Conheça a Empresa',
+    button_secondary_link: ''
   },
   {
-    id: 3,
-    image: IMAGES.hero.logistics,
-    tag: { icon: MapPin, text: 'Envio para todo o Brasil' },
-    titlePrefix: 'Sua encomenda chega',
-    titleHighlight: 'rápido',
-    titleSuffix: 'onde você estiver',
+    id: 'fallback-3',
+    order: 2,
+    is_active: true,
+    background_image: IMAGES.hero.logistics,
+    tag_text: 'Envio para todo o Brasil',
+    title_prefix: 'Sua encomenda chega',
+    title_highlight: 'rápido',
+    title_suffix: 'onde você estiver',
     description: 'Logística eficiente via transportadora com seguro de carga. Embalagem reforçada para lataria, vidros e componentes sensíveis.',
-    ctaPrimary: 'Simular Frete',
-    ctaSecondary: 'Atendimento Online',
-    linkSlug: 'lataria'
+    button_primary_text: 'Simular Frete',
+    button_primary_link: '/category/lataria',
+    button_secondary_text: 'Atendimento Online',
+    button_secondary_link: ''
   }
 ];
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const promoProducts = MOCK_PRODUCTS.filter(p => p.originalPrice);
-  const featuredProducts = MOCK_PRODUCTS.filter(p => !p.originalPrice).slice(0, 4);
+  const { products, loading } = useProducts();
+  const { slides: dbSlides, loading: slidesLoading } = useHeroSlides();
+  
+  // Usar slides do banco ou fallback
+  const heroSlides = dbSlides.length > 0 ? dbSlides : FALLBACK_SLIDES;
+  
+  const promoProducts = products.filter(p => p.originalPrice);
+  const featuredProducts = products.filter(p => !p.originalPrice).slice(0, 4);
 
   // Auto-play do carrossel
   useEffect(() => {
+    if (heroSlides.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 6000); // 6 segundos por slide
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length]);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
 
   return (
     <div className="space-y-0 pb-0 bg-blackCarbon">
       
       {/* Hero Banner Carousel */}
-      <section className="relative bg-grayDark border-b border-grayMedium overflow-hidden min-h-[600px] flex items-center group">
+      <section className="relative bg-blackCarbon border-b border-grayMedium overflow-hidden h-[600px] md:h-[700px] flex items-center group">
         
         {/* Slides Backgrounds & Content */}
-        {HERO_SLIDES.map((slide, index) => (
+        {heroSlides.map((slide, index) => (
           <div 
             key={slide.id}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
           >
-            {/* Background Image */}
+            {/* Background Image - cover em todos os dispositivos */}
             <div 
-              className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-30 transition-transform duration-[10000ms] ease-linear scale-105"
+              className="absolute inset-0 bg-cover bg-center transition-transform duration-[10000ms] ease-linear"
               style={{ 
-                backgroundImage: `url('${slide.image}')`,
-                transform: index === currentSlide ? 'scale(110)' : 'scale(100)' // Efeito Ken Burns sutil
+                backgroundImage: `url('${slide.background_image}')`,
+                transform: index === currentSlide ? 'scale(1.05)' : 'scale(1)'
               }} 
             ></div>
             
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blackCarbon via-blackCarbon/90 to-transparent"></div>
+            {/* Overlay escuro para legibilidade do texto */}
+            <div className="absolute inset-0 bg-blackCarbon/50"></div>
 
             {/* Content Container */}
             <div className="container mx-auto px-4 h-full flex items-center relative z-20">
               <div className={`max-w-3xl space-y-8 transition-all duration-700 delay-200 ${index === currentSlide ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
                 
                 {/* Tag */}
-                <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary rounded-full backdrop-blur-sm">
-                  <slide.tag.icon size={14} fill="currentColor" /> {slide.tag.text}
-                </div>
+                {slide.tag_text && (
+                  <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-primary rounded-full backdrop-blur-sm">
+                    <Zap size={14} fill="currentColor" /> {slide.tag_text}
+                  </div>
+                )}
                 
                 {/* Title */}
                 <h1 className="text-5xl sm:text-6xl md:text-7xl font-heading text-white uppercase leading-[0.9] tracking-wide drop-shadow-lg">
-                  {slide.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-500">{slide.titleHighlight}</span> {slide.titleSuffix}
+                  {slide.title_prefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-red-500">{slide.title_highlight}</span> {slide.title_suffix}
                 </h1>
                 
                 {/* Description */}
@@ -134,12 +209,22 @@ export const HomePage: React.FC = () => {
                 
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Button size="lg" className="h-14 px-8 text-lg" onClick={() => navigate(`/category/${slide.linkSlug}`)}>
-                    {slide.ctaPrimary}
-                  </Button>
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-grayLight/30 text-white hover:bg-white hover:text-blackCarbon" onClick={() => navigate('/institutional/contato')}>
-                    {slide.ctaSecondary}
-                  </Button>
+                  {slide.button_primary_text && (
+                    <Button size="lg" className="h-14 px-8 text-lg" onClick={() => navigate(slide.button_primary_link || '/')}>
+                      {slide.button_primary_text}
+                    </Button>
+                  )}
+                  {slide.button_secondary_text && (
+                    <a 
+                      href="https://wa.me/55984069184" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 h-14 px-8 text-lg rounded border-2 border-grayLight/30 text-white hover:bg-white hover:text-blackCarbon transition-colors font-bold"
+                    >
+                      <MessageCircle size={20} />
+                      {slide.button_secondary_text}
+                    </a>
+                  )}
                 </div>
 
                 {/* Features Footer (Static for all slides or dynamic if needed) */}
@@ -155,7 +240,7 @@ export const HomePage: React.FC = () => {
 
         {/* Controls */}
         <div className="absolute bottom-8 left-0 right-0 z-30 flex justify-center gap-3">
-          {HERO_SLIDES.map((_, idx) => (
+          {heroSlides.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentSlide(idx)}
@@ -181,13 +266,16 @@ export const HomePage: React.FC = () => {
 
       </section>
 
-      {/* Brands Marquee */}
-      <section className="border-b border-grayMedium bg-grayDark py-8">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-grayLight/40 mb-6">Trabalhamos com as principais marcas</p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-50 grayscale transition-all hover:opacity-100 hover:grayscale-0">
-            {BRANDS.map((brand) => (
-              <span key={brand} className="text-2xl font-heading uppercase text-white cursor-default hover:text-primary transition-colors">
+      {/* Brands Marquee - Infinite Scroll */}
+      <section className="border-b border-grayMedium bg-grayDark py-6 overflow-hidden">
+        <p className="text-center text-[10px] font-bold uppercase tracking-widest text-grayLight/40 mb-4">Trabalhamos com as principais marcas</p>
+        <div className="relative">
+          <div className="flex animate-marquee whitespace-nowrap">
+            {[...BRANDS, ...BRANDS, ...BRANDS].map((brand, i) => (
+              <span 
+                key={`${brand}-${i}`} 
+                className="mx-4 md:mx-8 text-base md:text-xl font-heading uppercase text-grayLight/50 hover:text-primary transition-colors cursor-default"
+              >
                 {brand}
               </span>
             ))}
@@ -236,27 +324,34 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Categories Grid */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="mb-10 flex items-center justify-between border-b border-grayMedium pb-4">
-          <h2 className="text-3xl font-heading text-white uppercase tracking-wide">
-            Busque por <span className="text-primary">Categoria</span>
-          </h2>
+      {/* Categories - Horizontal Scroll */}
+      <section className="py-10 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="mb-6 md:mb-10 flex items-center justify-between border-b border-grayMedium pb-4">
+            <h2 className="text-2xl md:text-3xl font-heading text-white uppercase tracking-wide">
+              Busque por <span className="text-primary">Categoria</span>
+            </h2>
+            <span className="text-xs text-grayLight uppercase tracking-wider hidden sm:block">Arraste para ver mais →</span>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => navigate(`/category/${cat.id}`)}
-              className="group relative flex flex-col items-center justify-center gap-4 overflow-hidden rounded-[6px] border border-grayMedium bg-grayDark p-8 transition-all hover:border-primary hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-blackCarbon/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
-              <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-grayMedium text-grayLight transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                <Settings size={32} strokeWidth={1.5} />
-              </div>
-              <span className="relative z-10 font-subheading text-xl tracking-wide text-grayLight group-hover:text-white uppercase">{cat.name}</span>
-            </button>
-          ))}
+        
+        {/* Horizontal Scroll Container */}
+        <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex gap-3 md:gap-4 px-4 md:px-8 pb-4" style={{ width: 'max-content' }}>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => navigate(`/category/${cat.id}`)}
+                className="group flex flex-col items-center justify-center gap-2 md:gap-3 rounded-lg border border-grayMedium bg-grayDark p-4 md:p-6 transition-all hover:border-primary hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10 min-w-[100px] md:min-w-[140px]"
+              >
+                <div className="flex h-10 w-10 md:h-14 md:w-14 items-center justify-center rounded-full bg-grayMedium text-grayLight transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <Settings size={20} className="md:hidden" strokeWidth={1.5} />
+                  <Settings size={28} className="hidden md:block" strokeWidth={1.5} />
+                </div>
+                <span className="font-subheading text-xs md:text-sm tracking-wide text-grayLight group-hover:text-white uppercase text-center whitespace-nowrap">{cat.name}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -284,55 +379,47 @@ export const HomePage: React.FC = () => {
 
       {/* Offers / Promo Products */}
       {promoProducts.length > 0 && (
-        <section className="container mx-auto px-4 py-16">
-          <div className="mb-10 flex items-end justify-between border-b border-grayMedium pb-4">
-            <div>
-              <span className="block text-success font-bold uppercase text-xs tracking-widest mb-1 flex items-center gap-1"><Clock size={12} /> Tempo Limitado</span>
-              <h2 className="text-3xl font-heading text-white uppercase">Ofertas Especiais</h2>
+        <section className="py-10 md:py-16">
+          <div className="container mx-auto px-4">
+            <div className="mb-6 md:mb-10 flex items-end justify-between border-b border-grayMedium pb-4">
+              <div>
+                <span className="block text-success font-bold uppercase text-xs tracking-widest mb-1 flex items-center gap-1"><Clock size={12} /> Tempo Limitado</span>
+                <h2 className="text-2xl md:text-3xl font-heading text-white uppercase">Ofertas Especiais</h2>
+              </div>
+              <button 
+                className="hidden sm:flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
+                onClick={() => navigate('/category/all')}
+              >
+                Ver todas <ArrowRight size={16} />
+              </button>
             </div>
-            <button 
-              className="hidden sm:flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
-              onClick={() => navigate('/category/all')}
-            >
-              Ver todas as ofertas <ArrowRight size={16} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {promoProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onClick={() => navigate(`/product/${product.id}`)}
-              />
-            ))}
+            <ProductCarouselSection 
+              products={promoProducts} 
+              onProductClick={(id) => navigate(`/product/${id}`)} 
+            />
           </div>
         </section>
       )}
 
       {/* Featured Products */}
-      <section className="bg-grayDark/30 py-16 border-y border-grayMedium">
+      <section className="bg-grayDark/30 py-10 md:py-16 border-y border-grayMedium">
         <div className="container mx-auto px-4">
-          <div className="mb-10 flex items-end justify-between border-b border-grayMedium pb-4">
+          <div className="mb-6 md:mb-10 flex items-end justify-between border-b border-grayMedium pb-4">
              <div>
                 <span className="block text-primary font-bold uppercase text-xs tracking-widest mb-1">Recém chegados</span>
-                <h2 className="text-3xl font-heading text-white uppercase">Destaques do Pátio</h2>
+                <h2 className="text-2xl md:text-3xl font-heading text-white uppercase">Destaques do Pátio</h2>
              </div>
              <button 
-                className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
+                className="hidden sm:flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-grayLight hover:text-primary transition-colors"
                 onClick={() => navigate('/category/all')}
              >
-               Estoque Completo <ArrowRight size={16} />
+               Ver todos <ArrowRight size={16} />
              </button>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {featuredProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onClick={() => navigate(`/product/${product.id}`)}
-              />
-            ))}
-          </div>
+          <ProductCarouselSection 
+            products={featuredProducts} 
+            onProductClick={(id) => navigate(`/product/${id}`)} 
+          />
         </div>
       </section>
 
@@ -380,7 +467,7 @@ export const HomePage: React.FC = () => {
                <input 
                   type="text" 
                   placeholder="(00) 99999-9999" 
-                  className="flex-1 h-12 rounded-[4px] border-none px-4 text-blackCarbon font-bold focus:ring-2 focus:ring-blackCarbon"
+                  className="flex-1 h-12 rounded-[4px] border-2 border-white/30 bg-white px-4 text-blackCarbon font-bold focus:ring-2 focus:ring-blackCarbon focus:border-blackCarbon"
                />
                <Button variant="secondary" className="h-12 bg-blackCarbon text-white hover:bg-black hover:text-white px-6">
                   Cadastrar

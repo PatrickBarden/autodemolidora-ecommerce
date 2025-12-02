@@ -1,11 +1,12 @@
 import React from 'react';
 import { Trash2, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { PageRoute } from '../types';
 import { formatCurrency } from '../utils/formatting';
 import { Button } from '../components/ui/Button';
 
-export const CartPage: React.FC<{ onNavigate: (r: PageRoute) => void }> = ({ onNavigate }) => {
+export const CartPage: React.FC = () => {
+  const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, subtotal } = useCart();
 
   if (items.length === 0) {
@@ -16,7 +17,7 @@ export const CartPage: React.FC<{ onNavigate: (r: PageRoute) => void }> = ({ onN
         </div>
         <h2 className="text-3xl font-heading text-white uppercase mb-2">Seu carrinho está vazio</h2>
         <p className="text-grayLight mb-10 text-center max-w-md">Nenhuma peça selecionada no momento. Explore nosso catálogo de peças usadas e novas.</p>
-        <Button onClick={() => onNavigate({ name: 'home' })} size="lg">
+        <Button onClick={() => navigate('/category/all')} size="lg">
           Ir para o Pátio
         </Button>
       </div>
@@ -95,14 +96,14 @@ export const CartPage: React.FC<{ onNavigate: (r: PageRoute) => void }> = ({ onN
 
              <Button 
                className="w-full py-4 text-base h-14" 
-               onClick={() => onNavigate({ name: 'checkout' })}
+               onClick={() => navigate('/checkout')}
              >
                Fechar Negócio
              </Button>
 
              <button 
                 className="mt-6 w-full text-center text-xs font-bold uppercase tracking-widest text-grayLight hover:text-white transition-colors"
-                onClick={() => onNavigate({ name: 'home' })}
+                onClick={() => navigate('/category/all')}
              >
                 Continuar Comprando
              </button>
